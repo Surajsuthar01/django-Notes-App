@@ -1,0 +1,60 @@
+version: "3.8"
+services:
+ nginx:
+   build:
+    context: ./nginx
+   container_name: nginx_cont
+   ports:
+    - "80:80"
+   restart: always
+   networks:
+    - suraj
+   depends_on:
+    - django_app
+
+
+ mysql:
+  image: mysql
+  container_name: mysql_cont
+  ports:
+    - "3306:3306"
+  environment:
+     MYSQL_ROOT_PASSWORD: root
+     MYSQL_DATABASE: suraj
+  restart: always
+  volumes:
+    - ./surajvolume:/var/lib/mysql
+  networks:
+    - suraj
+  healthcheck:
+    test: ["CMD","mysqladmin","ping","-h","localhost","-uroot","-proot"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+ django_app:
+   build:
+    context: .
+   container_name: django_cont
+   command: sh -c "python manage.py migrate --no-input && gunicorn notesapp.wsgi --bind 0.0.0.0:8000"
+   ports:
+    - "8000:8000"
+   env_file:
+    - ".env"
+   restart: always
+   networks:
+    - suraj
+   healthcheck:
+      test: ["CMD-SHELL" ,"curl -f http://localhost:8000/admin || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+   depends_on: 
+     - mysql
+
+volumes:
+ surajvolume:
+
+networks:
+ suraj:
+   
