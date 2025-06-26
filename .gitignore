@@ -2,6 +2,7 @@
 
 # ignore .vscode folder
 .vscode
+surajvolume/
 
 # dependencies
 /node_modules
